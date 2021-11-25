@@ -168,10 +168,24 @@ void FixedLagSmoother::optimizationLoop()
   // Optimize constraints until told to exit
   while (ros::ok() && optimization_running_)
   {
+    ROS_INFO_STREAM_THROTTLE(2.0, "update");
+    const ros::Time optimization_start = ros::Time::now();
+    if  (optimization_start < last_update_) {
+      // probably a rosbag is playing and set to loop
+      ROS_WARN_STREAM("Detected jump back in time of " << (last_update_ - optimization_start).toSec() << "s. Resetting.");
+      reset();
+      // TODO(lucasw) never see this output
+      std::cout << "test" << std::endl;
+      ROS_WARN_STREAM(optimization_running_ << " " << ros::ok());
+    }
+    last_update_ = optimization_start;
+
     // Wait for the next signal to start the next optimization cycle
     auto optimization_deadline = ros::Time(0, 0);
     {
+      ROS_INFO_STREAM("wait for opt req");
       std::unique_lock<std::mutex> lock(optimization_requested_mutex_);
+      ROS_INFO_STREAM("got opt req");
       optimization_requested_.wait(lock, exit_wait_condition);
       optimization_request_ = false;
       optimization_deadline = optimization_deadline_;
@@ -183,7 +197,9 @@ void FixedLagSmoother::optimizationLoop()
     }
     // Optimize
     {
+      ROS_INFO_STREAM("wait for opt");
       std::lock_guard<std::mutex> lock(optimization_mutex_);
+      ROS_INFO_STREAM("got opt");
       // Apply motion models
       auto new_transaction = fuse_core::Transaction::make_shared();
       // DANGER: processQueue obtains a lock from the pending_transactions_mutex_
@@ -247,14 +263,17 @@ void FixedLagSmoother::optimizationLoop()
       postprocessMarginalization(marginal_transaction_);
       // Note: The marginal transaction will not be applied until the next optimization iteration
       // Log a warning if the optimization took too long
-      auto optimization_complete = ros::Time::now();
+      const auto optimization_complete = ros::Time::now();
       if (optimization_complete > optimization_deadline)
       {
         ROS_WARN_STREAM_THROTTLE(10.0, "Optimization exceeded the configured duration by "
                                            << (optimization_complete - optimization_deadline) << "s");
       }
+      const auto optimization_elapsed = optimization_complete - optimization_start;
+      ROS_INFO_STREAM_THROTTLE(2.0, "update " << optimization_elapsed);
     }
   }
+  ROS_WARN_STREAM_THROTTLE(2.0, "done with loop " << optimization_running_);
 }
 
 void FixedLagSmoother::optimizerTimerCallback(const ros::TimerEvent& event)
@@ -420,6 +439,12 @@ void FixedLagSmoother::processQueue(fuse_core::Transaction& transaction, const r
 
 bool FixedLagSmoother::resetServiceCallback(std_srvs::Empty::Request&, std_srvs::Empty::Response&)
 {
+  return reset();
+}
+
+bool FixedLagSmoother::reset()
+{
+  ROS_WARN_STREAM("resetting");
   // Tell all the plugins to stop
   stopPlugins();
   // Reset the optimizer state
@@ -450,6 +475,7 @@ bool FixedLagSmoother::resetServiceCallback(std_srvs::Empty::Request&, std_srvs:
   startPlugins();
   // Test for auto-start
   autostart();
+  ROS_WARN_STREAM("finished resetting");
 
   return true;
 }

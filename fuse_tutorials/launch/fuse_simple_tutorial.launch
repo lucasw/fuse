@@ -2,6 +2,8 @@
 <launch>
   <arg name="use_rviz" default="true"/>
   <arg name="log_debug" default="false"/>
+  <arg name="launch_prefix" value="gnome-terminal -- gdb --args" if="$(arg log_debug)" />
+  <arg name="launch_prefix" value="" unless="$(arg log_debug)" />
 
   <env name="ROSCONSOLE_CONFIG_FILE"
        value="$(find fuse_tutorials)/config/rosconsole.config" if="$(arg log_debug)" />
@@ -11,11 +13,12 @@
   <param name="/use_sim_time" value="true"/>
 
   <node name="state_estimator" pkg="fuse_optimizers" type="fixed_lag_smoother_node"
+        launch-prefix="$(arg launch_prefix)"
         output="screen">
     <rosparam command="load" file="$(find fuse_tutorials)/config/fuse_simple_tutorial.yaml"/>
   </node>
 
-  <node name="bag_play" pkg="rosbag" type="play" args="$(find fuse_tutorials)/data/turtlebot3.bag --clock -d 3 -q"
+  <node name="bag_play" pkg="rosbag" type="play" args="$(find fuse_tutorials)/data/turtlebot3.bag --clock -d 3 -q -l"
         output="screen"/>
 
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find fuse_tutorials)/config/fuse_simple_tutorial.rviz"
