@@ -1,10 +1,13 @@
+<?xml version="1.0"?>
 <launch>
+  <arg name="use_rviz" default="true"/>
 
   <!-- Start the simulator node. This publishes the sensor data. -->
   <node name="range_sensor_simulator" pkg="fuse_tutorials" type="range_sensor_simulator" output="screen"/>
-  
+
   <!-- Start rviz -->
   <node name="rviz" pkg="rviz" type="rviz" output="screen"
+        if="$(arg use_rviz)"
         args="-d $(find fuse_tutorials)/config/range_sensor_tutorial.rviz"/>
 
   <!-- Start fuse fixed-lag smoother -->
