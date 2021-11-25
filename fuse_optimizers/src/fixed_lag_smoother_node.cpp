@@ -43,8 +43,23 @@ int main(int argc, char **argv)
   ros::NodeHandle private_node_handle("~");
   fuse_graphs::HashGraphParams hash_graph_params;
   hash_graph_params.loadFromROS(private_node_handle);
-  fuse_optimizers::FixedLagSmoother optimizer(fuse_graphs::HashGraph::make_unique(hash_graph_params));
-  ros::spin();
+
+  while (ros::ok()) {
+    fuse_optimizers::FixedLagSmoother optimizer(fuse_graphs::HashGraph::make_unique(hash_graph_params));
+    ros::Time last_update_time = ros::Time::now();
+    while (ros::ok())
+    {
+      const ros::Time update_time = ros::Time::now();
+      if (update_time < last_update_time) {
+        ROS_WARN_STREAM("time went backwards, restarting fixed lag smoother");
+        break;
+      }
+      // TODO(lucasw) what should be the sleep duration here?
+      ros::Duration(0.025).sleep();
+      ros::spinOnce();
+      last_update_time = update_time;
+    }
+  }
 
   return 0;
 }
