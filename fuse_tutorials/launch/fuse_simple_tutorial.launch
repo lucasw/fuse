@@ -1,11 +1,18 @@
+<?xml version="1.0"?>
 <launch>
+  <arg name="use_rviz" default="true"/>
+
   <param name="/use_sim_time" value="true"/>
 
-  <node name="state_estimator" pkg="fuse_optimizers" type="fixed_lag_smoother_node">
+  <node name="state_estimator" pkg="fuse_optimizers" type="fixed_lag_smoother_node"
+        output="screen">
     <rosparam command="load" file="$(find fuse_tutorials)/config/fuse_simple_tutorial.yaml"/>
   </node>
 
-  <node name="bag_play" pkg="rosbag" type="play" args="$(find fuse_tutorials)/data/turtlebot3.bag --clock -d 3"/>
+  <node name="bag_play" pkg="rosbag" type="play" args="$(find fuse_tutorials)/data/turtlebot3.bag --clock -d 3 -q"
+        output="screen"/>
 
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find fuse_tutorials)/config/fuse_simple_tutorial.rviz"/>
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find fuse_tutorials)/config/fuse_simple_tutorial.rviz"
+        if="$(arg use_rviz)"
+        output="screen"/>
 </launch>
