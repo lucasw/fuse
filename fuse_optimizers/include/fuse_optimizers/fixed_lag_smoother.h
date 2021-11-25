@@ -187,6 +187,8 @@ protected:
   mutable std::mutex start_time_mutex_;  //!< Synchronize modification to the start_time_ variable
   ros::Time start_time_;  //!< The timestamp of the first ignition sensor transaction
 
+  ros::Time last_update_ = ros::Time(0);  //!< The timestamp of the start of the last optimization loop
+
   // Ordering ROS objects with callbacks last
   ros::Timer optimize_timer_;  //!< Trigger an optimization operation at a fixed frequency
   ros::ServiceServer reset_service_server_;  //!< Service that resets the optimizer to its initial state
@@ -269,6 +271,11 @@ protected:
    * @brief Service callback that resets the optimizer to its original state
    */
   bool resetServiceCallback(std_srvs::Empty::Request&, std_srvs::Empty::Response&);
+
+  /**
+   * @brief Reset the optimizer to its original state
+   */
+  bool reset();
 
   /**
    * @brief Thread-safe read-only access to the optimizer start time
