@@ -18,7 +18,7 @@
     <rosparam command="load" file="$(find fuse_tutorials)/config/fuse_simple_tutorial.yaml"/>
   </node>
 
-  <node name="bag_play" pkg="rosbag" type="play" args="$(find fuse_tutorials)/data/turtlebot3.bag --clock -d 3 -q -l"
+  <node name="bag_play" pkg="rosbag" type="play" args="$(find fuse_tutorials)/data/turtlebot3.bag --clock -d 3 -q -l -r 1.0"
         output="screen"/>
 
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find fuse_tutorials)/config/fuse_simple_tutorial.rviz"
