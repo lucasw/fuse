@@ -1,0 +1,48 @@
+# Fixed-lag smoother configuration
+optimization_frequency: 20
+transaction_timeout: 0.01
+lag_duration: 2.5
+
+motion_models:
+  unicycle_motion_model:
+    # TODO(lucasw) no 3D version of this?
+    type: fuse_models::Unicycle2D
+
+sensor_models:
+  initial_localization_sensor:
+    type: fuse_models::Unicycle2DIgnition
+    motion_models: [unicycle_motion_model]
+    ignition: true
+  cmd_vel_sensor:
+    type: fuse_models::Twist2D
+    motion_models: [unicycle_motion_model]
+
+initial_localization_sensor:
+  publish_on_startup: true
+  #                x      y      yaw    vx     vy     vyaw    ax     ay
+  initial_state: [-2.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000]
+  initial_sigma: [0.100, 0.100, 0.100, 0.100, 0.100, 0.100, 0.100, 0.100]
+
+cmd_vel_sensor:
+  topic: 'twist_with_covar'
+  target_frame: 'base_link'
+  linear_dimensions: ['x', 'y']
+  angular_dimensions: ['yaw']
+
+unicycle_motion_model:
+  #                         x      y      yaw    vx     vy     vyaw   ax   ay
+  process_noise_diagonal: [0.100, 0.100, 0.100, 0.010, 0.010, 0.010, 0.1, 0.1]
+
+publishers:
+  filtered_publisher:
+    type: fuse_models::Odometry2DPublisher
+
+filtered_publisher:
+  topic: 'odom_filtered'
+  base_link_frame_id: 'base_link'
+  odom_frame_id: 'odom'
+  map_frame_id: 'map'
+  world_frame_id: 'odom'
+  publish_tf: true
+  publish_frequency: 10
+

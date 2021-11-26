@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="log_debug" default="false"/>
+  <arg name="use_gdb" default="false"/>
+  <arg name="launch_prefix" value="gnome-terminal -- gdb --args" if="$(arg use_gdb)" />
+  <arg name="launch_prefix" value="" unless="$(arg use_gdb)" />
+
+  <env name="ROSCONSOLE_CONFIG_FILE"
+       value="$(find fuse_tutorials)/config/rosconsole.config" if="$(arg log_debug)" />
+  <env name="ROSCONSOLE_CONFIG_FILE"
+       value="$(env ROS_ROOT)/rosconsole.config" unless="$(arg log_debug)" />
+
+  <node name="cmd_vel_to_twist_with_covar" pkg="fuse_tutorials" type="cmd_vel_to_twist_with_covar.py"
+        output="screen">
+  </node>
+
+  <node name="fuse_state_estimator" pkg="fuse_optimizers" type="fixed_lag_smoother_node"
+        launch-prefix="$(arg launch_prefix)"
+        output="screen">
+    <rosparam command="load" file="$(find fuse_tutorials)/config/fuse_cmd_vel_to_odom.yaml"/>
+  </node>
+
+</launch>
