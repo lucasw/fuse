@@ -10,16 +10,22 @@ from geometry_msgs.msg import TwistWithCovarianceStamped
 class TwistConvert(object):
     def __init__(self):
         self.frame_id = rospy.get_param('~frame_id', 'base_link')
+        self.twist = Twist()
         # TODO(lucasw) dynamic reconfigure
         self.covar = rospy.get_param('~covar', 0.01)
         self.pub = rospy.Publisher('twist_with_covar', TwistWithCovarianceStamped, queue_size=3)
         self.sub = rospy.Subscriber('cmd_vel', Twist, self.callback, queue_size=3)
+        self.timer = rospy.Timer(rospy.Duration(0.05), self.update, reset=True)
 
     def callback(self, twist):
+        self.twist = twist
+
+    def update(self, event):
+        stamp = event.current_real
         msg = TwistWithCovarianceStamped()
         msg.header.frame_id = self.frame_id
-        msg.header.stamp = rospy.Time.now()
-        msg.twist.twist = twist
+        msg.header.stamp = stamp
+        msg.twist.twist = self.twist
 
         for i in range(len(msg.twist.covariance)):
             msg.twist.covariance[i] = 0.0

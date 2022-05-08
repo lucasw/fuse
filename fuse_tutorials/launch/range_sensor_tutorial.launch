@@ -1,6 +1,14 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="use_rviz" default="true"/>
+  <arg name="log_debug" default="false"/>
+  <arg name="launch_prefix" value="gnome-terminal -- gdb --args" if="$(arg log_debug)" />
+  <arg name="launch_prefix" value="" unless="$(arg log_debug)" />
+
+  <env name="ROSCONSOLE_CONFIG_FILE"
+       value="$(find fuse_tutorials)/config/rosconsole.config" if="$(arg log_debug)" />
+  <env name="ROSCONSOLE_CONFIG_FILE"
+       value="$(env ROS_ROOT)/rosconsole.config" unless="$(arg log_debug)" />
 
   <!-- Start the simulator node. This publishes the sensor data. -->
   <node name="range_sensor_simulator" pkg="fuse_tutorials" type="range_sensor_simulator" output="screen"/>
@@ -11,7 +19,9 @@
         args="-d $(find fuse_tutorials)/config/range_sensor_tutorial.rviz"/>
 
   <!-- Start fuse fixed-lag smoother -->
-  <node name="state_estimation" pkg="fuse_optimizers" type="fixed_lag_smoother_node" output="screen">
+  <node name="state_estimation" pkg="fuse_optimizers" type="fixed_lag_smoother_node"
+        launch-prefix="$(arg launch_prefix)"
+        output="screen">
     <rosparam command="load" file="$(find fuse_tutorials)/config/range_sensor_tutorial.yaml"/>
   </node>
 
