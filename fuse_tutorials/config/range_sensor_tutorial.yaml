@@ -1,7 +1,7 @@
 # Fixed-lag smoother configuration
 optimization_frequency: 20
 transaction_timeout: 0.01
-lag_duration: 0.5
+lag_duration: 2.0
 
 motion_models:
   unicycle_motion_model:
@@ -27,7 +27,8 @@ sensor_models:
     motion_models: [unicycle_motion_model]
 
 initial_localization_sensor:
-  publish_on_startup: false
+  publish_on_startup: true
+  initial_state: [0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000]
 
 odometry_sensor:
   topic: 'wheel_odom'
